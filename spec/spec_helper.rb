@@ -3,8 +3,10 @@
 require 'gateway/in_memory_board_gateway'
 require 'use_case/view_board'
 require 'use_case/place_piece'
+require 'use_case/undo_piece'
 require 'use_case/ai_play'
 require 'use_case/check_game_status'
+require 'use_case/get_empty_cells'
 require 'domain/board'
 
 RSpec.configure do |config|
