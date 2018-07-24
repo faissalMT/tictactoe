@@ -8,6 +8,9 @@ require 'use_case/ai_play'
 require 'use_case/check_game_status'
 require 'use_case/get_empty_cells'
 require 'domain/board'
+require 'simulator_adapter'
+require 'minimax'
+require 'pry-byebug'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
@@ -25,9 +28,5 @@ RSpec.configure do |config|
     config.run_all_when_everything_filtered
     config.warnings = true
     config.default_formatter = 'doc' if config.files_to_run.one?
-
-    config.order = :random
-
-    Kernel.srand config.seed
   end
 end

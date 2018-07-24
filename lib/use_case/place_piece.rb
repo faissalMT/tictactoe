@@ -10,11 +10,11 @@ module UseCase
       @board_gateway = board_gateway
     end
 
-    def execute(coordinates:)
+    def execute(coordinates:, piece: nil)
       x, y = coordinates
 
       board = fetch_board
-      piece = next_piece(board.last_piece)
+      piece = next_piece(board.last_piece) if piece.nil?
 
       grid = board.state
       grid[y][x] = piece

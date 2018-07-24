@@ -2,9 +2,13 @@
 
 module UseCase
   class GetEmptyCells
-    def execute(board_gateway:)
+    def initialize(board_gateway:)
+      @board_gateway = board_gateway
+    end
+
+    def execute
       empty_cells = []
-      board_gateway.board.state.each_with_index do |row, y|
+      @board_gateway.board.state.each_with_index do |row, y|
         row.each_with_index do |cell, x|
           empty_cells.append([x, y]) if cell.nil?
         end

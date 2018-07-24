@@ -2,54 +2,45 @@
 
 module UseCase
   class AiPlay
-    def initialize(board_gateway:, piece: :O)
-      @board_gateway = board_gateway
-      @piece = next_piece(board_gateway.board.last_piece)
-      @game_status_getter = UseCase::CheckGameStatus.new
-      @empty_cell_getter = UseCase::GetEmptyCells.new
-      @piece_placer = UseCase::PlacePiece.new(board_gateway: board_gateway)
-      @piece_undoer = UseCase::UndoPiece.new(board_gateway: board_gateway)
+    def initialize(minimax:, piece_placer:, get_empty_cells:, simulator:)
+      @piece_placer = piece_placer
+      @minimax = minimax
+      @get_empty_cells = get_empty_cells
+      @simulator = simulator
+      # TODO: Fix this hardcoding so the AI can dynamically choose its piece based on who last played
+      @piece = :O
     end
 
     def execute(*)
-      @piece_placer.execute(coordinates: minimax(@board_gateway)[:move])
+      @piece_placer.execute(
+        coordinates: @minimax.best_move(
+          tree_builder(@get_empty_cells.execute)
+        )
+      )
     end
 
     private
 
-    def next_piece(last_piece)
-      if last_piece == :X
-        :O
-      elsif last_piece == :O
-        :X
-      end
-    end
+    def tree_builder(cells)
+      return [] if cells.nil?
 
-    def minimax(board_gateway)
-      empty_cells = @empty_cell_getter.execute(board_gateway: board_gateway)
-      game_status = @game_status_getter.execute(board_gateway: board_gateway)
-
-      if game_status[:status] == :win
-        if game_status[:winner] == @piece
-          return { score: 1 }
-        else
-          return { score: -1 }
+      cells.map do |cell|
+        score = 10
+        status = @simulator.check_status(@piece)
+        if status == :tie
+          score = 0
+        elsif status == :lose
+          score = -10
+        elsif :incomplete
+          score = 0
         end
-      elsif game_status[:status] == :tie
-        return { score: 0 }
-      end
 
-      moves = []
-      empty_cells.each do |free_space|
-        @piece_placer.execute(coordinates: free_space)
-        moves.append(move: free_space, score: minimax(board_gateway)[:score])
-        @piece_undoer.execute(coordinates: free_space)
-      end
-
-      if board_gateway.board.last_piece == @piece
-        moves.max_by { |x| x[:score] }
-      else
-        moves.min_by { |x| x[:score] }
+        @simulator.place_piece(cell)
+        node = { score: score,
+                 coordinates: cell,
+                 children: tree_builder(@simulator.empty_cells) }
+        @simulator.undo_piece(cell)
+        node
       end
     end
   end
